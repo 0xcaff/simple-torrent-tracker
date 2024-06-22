@@ -5,7 +5,10 @@ export type ParseResult<T> = {
 
 export type Parser<T> = (input: string) => ParseResult<T> | null;
 
-export function map<T1, T2>(parser: Parser<T1>, fn: (value: T1) => T2): Parser<T2> {
+export function map<T1, T2>(
+	parser: Parser<T1>,
+	fn: (value: T1) => T2,
+): Parser<T2> {
 	return (input) => {
 		const result = parser(input);
 		if (!result) {
@@ -19,7 +22,10 @@ export function map<T1, T2>(parser: Parser<T1>, fn: (value: T1) => T2): Parser<T
 	};
 }
 
-export function sequence<T1, T2>(parser1: Parser<T1>, parser2: Parser<T2>): Parser<[T1, T2]> {
+export function sequence<T1, T2>(
+	parser1: Parser<T1>,
+	parser2: Parser<T2>,
+): Parser<[T1, T2]> {
 	return (input) => {
 		const result1 = parser1(input);
 		if (!result1) {
@@ -67,7 +73,10 @@ export function tag(value: string): Parser<string> {
 	};
 }
 
-export function takeExactly<Inner>(count: number, parse: Parser<Inner>): Parser<Inner[]> {
+export function takeExactly<Inner>(
+	count: number,
+	parse: Parser<Inner>,
+): Parser<Inner[]> {
 	return (input) => {
 		const results: Inner[] = [];
 		let remaining = input;
@@ -111,7 +120,9 @@ export function parseRepeated<Inner>(parseFn: Parser<Inner>): Parser<Inner[]> {
 	};
 }
 
-export function parseMatching(predicate: (char: string) => boolean): Parser<string> {
+export function parseMatching(
+	predicate: (char: string) => boolean,
+): Parser<string> {
 	return (input) => {
 		if (input.length < 1) {
 			return null;

@@ -2,5 +2,5 @@
 // by running `wrangler types`
 
 interface Env {
-	TORRENT_STATE: DurableObjectNamespace;
+  TORRENT_STATE: DurableObjectNamespace;
 }
