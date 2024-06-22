@@ -14,10 +14,8 @@ type PeerStateStored = PeerStateArgs & {
 
 export class TorrentState implements DurableObject {
 	private storage: DurableObjectStorage;
-	private state: DurableObjectState;
 
 	constructor(state: DurableObjectState, env: Env) {
-		this.state = state;
 		this.storage = state.storage;
 	}
 
