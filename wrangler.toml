@@ -1,5 +1,5 @@
 #:schema node_modules/wrangler/config-schema.json
-name = "simple-torrent-tracker"
+name = "tracker"
 main = "src/index.ts"
 compatibility_date = "2024-06-20"
 compatibility_flags = ["nodejs_compat"]
@@ -106,3 +106,12 @@ compatibility_flags = ["nodejs_compat"]
 # [[vectorize]]
 # binding = "MY_INDEX"
 # index_name = "my-index"
+
+[durable_objects]
+bindings = [
+	{ name = "TORRENT_STATE", class_name = "TorrentState" }
+]
+
+[[migrations]]
+tag = "v1" # This can be any unique identifier
+new_classes = ["TorrentState"]
