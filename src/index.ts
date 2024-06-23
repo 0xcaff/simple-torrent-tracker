@@ -14,9 +14,13 @@ type PeerStateStored = PeerStateArgs & {
 
 export class TorrentState implements DurableObject {
   private storage: DurableObjectStorage;
+  private state: DurableObjectState;
+  private logger: DatadogLogger;
 
   constructor(state: DurableObjectState, env: Env) {
     this.storage = state.storage;
+    this.state = state;
+    this.logger = new DatadogLogger(env.DD_API_KEY);
   }
 
   async fetch(request: Request) {
@@ -64,6 +68,21 @@ export class TorrentState implements DurableObject {
       );
 
       await this.cleanupPeers();
+
+      this.state.waitUntil(
+        this.logger.log([
+          {
+            type: "announce",
+            values: {
+              ip,
+              port,
+              uploaded,
+              downloaded,
+              left,
+            }
+          },
+        ]),
+      );
 
       const peerList = await this.getPeerList();
 
@@ -255,5 +274,29 @@ function bencode(data: BencodableValue): string {
     return `d${encoded}e`;
   } else {
     throw new Error("invalid data type");
+  }
+}
+
+class DatadogLogger {
+  constructor(private apiKey: string) {}
+
+  async log(messages: any[]) {
+    const url = `https://http-intake.logs.datadoghq.com/api/v2/logs`;
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "DD-API-KEY": this.apiKey,
+      },
+      body: JSON.stringify(
+        messages.map((message) => ({
+          message,
+          hostname: "cloudflare",
+          service: "tracker",
+          ddtags: "env:prod",
+        })),
+      ),
+    });
   }
 }
