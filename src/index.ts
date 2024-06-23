@@ -9,6 +9,7 @@ interface Env {
 }
 
 type PeerStateArgs = {
+  peerId: string;
   ip: string;
   port: number;
   uploaded: number;
@@ -42,7 +43,7 @@ export class TorrentState extends DurableObject {
   }: AnnounceArguments) {
     await this.updatePeer(
       peerId,
-      { ip, port, uploaded, downloaded, left },
+      { peerId, ip, port, uploaded, downloaded, left },
       event,
     );
 
