@@ -321,8 +321,7 @@ class DatadogLogger {
 
   async log(messages: any[]) {
     const url = `https://http-intake.logs.datadoghq.com/api/v2/logs`;
-
-    const response = await fetch(url, {
+    await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
