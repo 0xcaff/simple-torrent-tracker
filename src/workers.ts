@@ -115,7 +115,7 @@ export default {
       );
     }
 
-    if (url.pathname === "/") {
+    if (url.pathname === "/announce") {
       const id = env.TORRENT_STATE.idFromName(result.values.infoHash);
       const tracker = env.TORRENT_STATE.get(id);
 
