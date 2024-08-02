@@ -1,6 +1,10 @@
 import { DurableObject } from "cloudflare:workers";
-
-import * as p from "./parse";
+import {
+  parseQueryString,
+  parseQueryStringValue,
+} from "./parse/parseQueryString";
+import { bencode, intoHex, tryExtractNumber } from "./bencode";
+import { DatadogLogger } from './datadogLogger';
 
 interface Env {
   TORRENT_STATE: DurableObjectNamespace<TorrentState>;
@@ -214,128 +218,3 @@ export default {
     }
   },
 } satisfies ExportedHandler<Env>;
-
-export function intoHex(array: Uint8Array) {
-  return [...array].map((b) => b.toString(16).padStart(2, "0")).join("");
-}
-
-export function parseQueryStringValue(queryString: string): Uint8Array {
-  const result = p.parseRepeated(
-    p.alt(
-      p.map(
-        p.sequence(
-          p.tag("%"),
-          p.takeExactly(
-            2,
-            p.parseMatching((input) => /[0-9a-fA-F]/.test(input)),
-          ),
-        ),
-        ([_, char]) => parseInt(char.join(""), 16),
-      ),
-      p.map(
-        p.parseMatching(
-          (char) =>
-            ![
-              "!",
-              "*",
-              "'",
-              "(",
-              ")",
-              ";",
-              ":",
-              "@",
-              "&",
-              "=",
-              "+",
-              "$",
-              ",",
-              "/",
-              "?",
-              "#",
-              "[",
-              "]",
-            ].includes(char),
-        ),
-        (char) => char.charCodeAt(0),
-      ),
-    ),
-  )(queryString);
-
-  if (!result || result.remaining.length > 0) {
-    throw new Error("invalid query string");
-  }
-
-  return new Uint8Array(result.value);
-}
-
-export function parseQueryString(queryString: string): Map<string, string> {
-  const params = new Map<string, string>();
-  const pairs = queryString.split("&");
-  for (const pair of pairs) {
-    const [key, value] = pair.split("=");
-    if (key && value) {
-      params.set(decodeURIComponent(key), value);
-    }
-  }
-  return params;
-}
-
-function tryExtractNumber(value: string | null): number | null {
-  if (!value) {
-    return null;
-  }
-
-  const parsedValue = parseInt(value);
-  if (!(parsedValue >= 0)) {
-    return null;
-  }
-
-  return parsedValue;
-}
-
-type BencodableValue =
-  | number
-  | string
-  | BencodableValue[]
-  | { [key: string]: BencodableValue };
-
-function bencode(data: BencodableValue): string {
-  if (typeof data === "number") {
-    return `i${data}e`;
-  } else if (typeof data === "string") {
-    return `${data.length}:${data}`;
-  } else if (Array.isArray(data)) {
-    return `l${data.map(bencode).join("")}e`;
-  } else if (typeof data === "object") {
-    const encoded = Object.keys(data)
-      .sort()
-      .map((key) => `${bencode(key)}${bencode(data[key])}`)
-      .join("");
-    return `d${encoded}e`;
-  } else {
-    throw new Error("invalid data type");
-  }
-}
-
-class DatadogLogger {
-  constructor(private apiKey: string) {}
-
-  async log(messages: any[]) {
-    const url = `https://http-intake.logs.datadoghq.com/api/v2/logs`;
-    await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "DD-API-KEY": this.apiKey,
-      },
-      body: JSON.stringify(
-        messages.map((message) => ({
-          message,
-          hostname: "cloudflare",
-          service: "tracker",
-          ddtags: "env:prod",
-        })),
-      ),
-    });
-  }
-}
