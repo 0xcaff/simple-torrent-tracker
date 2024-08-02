@@ -118,6 +118,10 @@ export default {
         );
       }
 
+      if (!isInAllowedInfoHashes(result.values.infoHash)) {
+        return new Response("not found", { status: 404 });
+      }
+
       const id = env.TORRENT_STATE.idFromName(result.values.infoHash);
       const tracker = env.TORRENT_STATE.get(id);
 
