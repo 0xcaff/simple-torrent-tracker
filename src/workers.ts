@@ -136,13 +136,23 @@ export default {
         return new Response("not found", { status: 404 });
       }
 
+      const values = {
+        peerId: result.values.peerId,
+        ip: result.values.ip ?? request.headers.get("cf-connecting-ip")!,
+        port: result.values.port,
+        uploaded: result.values.uploaded,
+        downloaded: result.values.downloaded,
+        left: result.values.left,
+        event: result.values.event,
+      }
+
       if (env.DD_API_KEY) {
         const logger = new DatadogLogger(env.DD_API_KEY);
         ctx.waitUntil(
           logger.log([
             {
               type: "announce",
-              values: result.values,
+              values,
             },
           ]),
         );
@@ -151,15 +161,7 @@ export default {
       const id = env.TORRENT_STATE.idFromName(result.values.infoHash);
       const tracker = env.TORRENT_STATE.get(id);
 
-      const response = await tracker.handleAnnounce({
-        peerId: result.values.peerId,
-        ip: result.values.ip ?? request.headers.get("cf-connecting-ip")!,
-        port: result.values.port,
-        uploaded: result.values.uploaded,
-        downloaded: result.values.downloaded,
-        left: result.values.left,
-        event: result.values.event,
-      });
+      const response = await tracker.handleAnnounce(values);
 
       return new Response(response);
     } else {
