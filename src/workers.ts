@@ -2,6 +2,7 @@ import { DurableObject } from "cloudflare:workers";
 import { parseQueryString } from "./parse/parseQueryString";
 import { bencode } from "./bencode";
 import { extractArgs } from "./extractArgs";
+import { DatadogLogger } from "./datadogLogger";
 
 interface Env {
   TORRENT_STATE: DurableObjectNamespace<TorrentState>;
@@ -98,7 +99,7 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
-    if (env.PATH_KEY && !url.pathname.startsWith('/' + env.PATH_KEY)) {
+    if (env.PATH_KEY && !url.pathname.startsWith("/" + env.PATH_KEY)) {
       return new Response("not found", { status: 404 });
     }
 
@@ -106,7 +107,7 @@ export default {
       if (env.PATH_KEY) {
         return url.pathname.slice(1 + env.PATH_KEY.length);
       } else {
-        return url.pathname
+        return url.pathname;
       }
     })();
 
@@ -133,6 +134,18 @@ export default {
 
       if (!isInAllowedInfoHashes(result.values.infoHash)) {
         return new Response("not found", { status: 404 });
+      }
+
+      if (env.DD_API_KEY) {
+        const logger = new DatadogLogger(env.DD_API_KEY);
+        ctx.waitUntil(
+          logger.log([
+            {
+              type: "announce",
+              values: result.values,
+            },
+          ]),
+        );
       }
 
       const id = env.TORRENT_STATE.idFromName(result.values.infoHash);
