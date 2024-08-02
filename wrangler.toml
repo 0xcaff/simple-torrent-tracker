@@ -1,6 +1,6 @@
 #:schema node_modules/wrangler/config-schema.json
 name = "tracker"
-main = "src/index.ts"
+main = "src/workers.ts"
 compatibility_date = "2024-06-20"
 compatibility_flags = ["nodejs_compat"]
 

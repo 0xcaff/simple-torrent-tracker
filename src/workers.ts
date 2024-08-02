@@ -1,10 +1,7 @@
 import { DurableObject } from "cloudflare:workers";
-import {
-  parseQueryString,
-  parseQueryStringValue,
-} from "./parse/parseQueryString";
-import { bencode, intoHex, tryExtractNumber } from "./bencode";
-import { DatadogLogger } from './datadogLogger';
+import { parseQueryString } from "./parse/parseQueryString";
+import { bencode } from "./bencode";
+import { extractArgs } from "./extractArgs";
 
 interface Env {
   TORRENT_STATE: DurableObjectNamespace<TorrentState>;
@@ -103,101 +100,29 @@ export default {
       return env.ALLOWED_INFO_HASHES.split(",").includes(infoHash);
     }
 
+    const queryParams = parseQueryString(url.search.slice(1));
+    const result = extractArgs(queryParams);
+
+    if (result.type === "FAILURE") {
+      return new Response(
+        bencode({
+          "failure reason": result.reason,
+        }),
+      );
+    }
+
     if (url.pathname === "/") {
-      const params = parseQueryString(url.search.slice(1));
-
-      const encodedInfoHash = params.get("info_hash");
-
-      if (!encodedInfoHash) {
-        return new Response(
-          bencode({
-            "failure code": 101,
-          }),
-        );
-      }
-
-      const infoHashDecoded = parseQueryStringValue(encodedInfoHash);
-      if (infoHashDecoded.length !== 20) {
-        return new Response(
-          bencode({
-            "failure code": 150,
-          }),
-        );
-      }
-
-      const infoHash = intoHex(infoHashDecoded);
-      if (!isInAllowedInfoHashes(infoHash)) {
-        return new Response(
-          bencode({
-            "failure code": 200,
-          }),
-        );
-      }
-
-      const peerId = params.get("peer_id");
-      if (!peerId) {
-        return new Response(
-          bencode({
-            "failure code": 102,
-          }),
-        );
-      }
-
-      if (peerId.length !== 20) {
-        return new Response(
-          bencode({
-            "failure code": 151,
-          }),
-        );
-      }
-
-      const port = tryExtractNumber(params.get("port") ?? null);
-      if (!port) {
-        return new Response(
-          bencode({
-            "failure code": 103,
-          }),
-        );
-      }
-
-      const uploaded = tryExtractNumber(params.get("uploaded") ?? null) ?? 0;
-      const downloaded =
-        tryExtractNumber(params.get("downloaded") ?? null) ?? 0;
-      const left = tryExtractNumber(params.get("left") ?? null) ?? 0;
-      const event = params.get("event") ?? null;
-
-      const ip = params.get("ip") ?? request.headers.get("cf-connecting-ip")!;
-
-      if (env.DD_API_KEY) {
-        const logger = new DatadogLogger(env.DD_API_KEY);
-        ctx.waitUntil(
-          logger.log([
-            {
-              type: "announce",
-              values: {
-                infoHash,
-                ip,
-                port,
-                uploaded,
-                downloaded,
-                left,
-              },
-            },
-          ]),
-        );
-      }
-
-      const id = env.TORRENT_STATE.idFromName(infoHash);
+      const id = env.TORRENT_STATE.idFromName(result.values.infoHash);
       const tracker = env.TORRENT_STATE.get(id);
 
       const response = await tracker.handleAnnounce({
-        peerId,
-        ip,
-        port,
-        uploaded,
-        downloaded,
-        left,
-        event,
+        peerId: result.values.peerId,
+        ip: result.values.ip ?? request.headers.get("cf-connecting-ip")!,
+        port: result.values.port,
+        uploaded: result.values.uploaded,
+        downloaded: result.values.downloaded,
+        left: result.values.left,
+        event: result.values.event,
       });
 
       return new Response(response);
