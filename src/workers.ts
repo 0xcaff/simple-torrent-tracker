@@ -54,7 +54,11 @@ export class TorrentState extends DurableObject {
 
     return bencode({
       interval: 1800,
-      peers: peerList,
+      peers: peerList.map(peer => ({
+        id: peer.peerId,
+        ip: peer.ip,
+        port: peer.port,
+      })),
     });
   }
 
