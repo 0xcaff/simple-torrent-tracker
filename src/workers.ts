@@ -7,6 +7,7 @@ interface Env {
   TORRENT_STATE: DurableObjectNamespace<TorrentState>;
   DD_API_KEY?: string;
   ALLOWED_INFO_HASHES?: string;
+  PATH_KEY?: string;
 }
 
 type PeerStateArgs = {
@@ -97,6 +98,18 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
+    if (env.PATH_KEY && !url.pathname.startsWith('/' + env.PATH_KEY)) {
+      return new Response("not found", { status: 404 });
+    }
+
+    const pathname = (() => {
+      if (env.PATH_KEY) {
+        return url.pathname.slice(1 + env.PATH_KEY.length);
+      } else {
+        return url.pathname
+      }
+    })();
+
     function isInAllowedInfoHashes(infoHash: string) {
       if (!env.ALLOWED_INFO_HASHES) {
         // Allow all by default
@@ -106,7 +119,7 @@ export default {
       return env.ALLOWED_INFO_HASHES.split(",").includes(infoHash);
     }
 
-    if (url.pathname === "/announce") {
+    if (pathname === "/announce") {
       const queryParams = parseQueryString(url.search.slice(1));
       const result = extractArgs(queryParams);
 
@@ -137,7 +150,7 @@ export default {
 
       return new Response(response);
     } else {
-      const infoHash = url.pathname.slice(1);
+      const infoHash = pathname.slice(1);
       if (infoHash.length != 40) {
         return new Response("not found", { status: 404 });
       }
