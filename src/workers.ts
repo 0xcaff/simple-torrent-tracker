@@ -50,11 +50,13 @@ export class TorrentState extends DurableObject {
 
     await this.cleanupPeers();
 
-    const peerList = await this.getPeerList();
+    const peerList = (await this.getPeerList()).filter(
+      (it) => !(it.peerId == peerId && it.ip == ip && it.port == port),
+    );
 
     return bencode({
       interval: 1800,
-      peers: peerList.map(peer => ({
+      peers: peerList.map((peer) => ({
         id: peer.peerId,
         ip: peer.ip,
         port: peer.port,
@@ -104,18 +106,18 @@ export default {
       return env.ALLOWED_INFO_HASHES.split(",").includes(infoHash);
     }
 
-    const queryParams = parseQueryString(url.search.slice(1));
-    const result = extractArgs(queryParams);
-
-    if (result.type === "FAILURE") {
-      return new Response(
-        bencode({
-          "failure reason": result.reason,
-        }),
-      );
-    }
-
     if (url.pathname === "/announce") {
+      const queryParams = parseQueryString(url.search.slice(1));
+      const result = extractArgs(queryParams);
+
+      if (result.type === "FAILURE") {
+        return new Response(
+          bencode({
+            "failure reason": result.reason,
+          }),
+        );
+      }
+
       const id = env.TORRENT_STATE.idFromName(result.values.infoHash);
       const tracker = env.TORRENT_STATE.get(id);
 

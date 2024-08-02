@@ -28,26 +28,7 @@ export function parseQueryStringValue(queryString: string): Uint8Array {
       p.map(
         p.parseMatching(
           (char) =>
-            ![
-              "!",
-              "*",
-              "'",
-              "(",
-              ")",
-              ";",
-              ":",
-              "@",
-              "&",
-              "=",
-              "+",
-              "$",
-              ",",
-              "/",
-              "?",
-              "#",
-              "[",
-              "]",
-            ].includes(char),
+            true
         ),
         (char) => char.charCodeAt(0),
       ),
