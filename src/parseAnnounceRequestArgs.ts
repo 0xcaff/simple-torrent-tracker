@@ -1,7 +1,7 @@
-import { parseQueryStringValue } from './parse/parseQueryString';
+import { parseQueryStringValue } from './parseQueryString/parseQueryString';
 import { intoHex, tryExtractNumber } from './bencode';
 
-export function extractArgs(
+export function parseAnnounceRequestArgs(
 	queryParams: Map<string, string>,
 ) {
 	const encodedInfoHash = queryParams.get("info_hash");

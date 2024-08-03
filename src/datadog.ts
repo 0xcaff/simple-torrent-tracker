@@ -1,4 +1,4 @@
-export class DatadogLogger {
+export class Datadog {
   constructor(private apiKey: string) {}
 
   async log(messages: any[]) {

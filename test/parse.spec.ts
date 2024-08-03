@@ -1,5 +1,5 @@
 import { it, expect } from "vitest";
-import { parseQueryString, parseQueryStringValue } from '../src/parse/parseQueryString';
+import { parseQueryString, parseQueryStringValue } from '../src/parseQueryString/parseQueryString';
 import { intoHex } from '../src/bencode';
 
 it("parses a query string into its constituent parts", () => {

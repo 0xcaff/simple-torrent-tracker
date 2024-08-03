@@ -1,6 +1,6 @@
 import * as http from 'node:http';
-import { parseQueryString } from './parse/parseQueryString';
-import { extractArgs } from './extractArgs';
+import { parseQueryString } from './parseQueryString/parseQueryString';
+import { parseAnnounceRequestArgs } from './parseAnnounceRequestArgs';
 import { bencode } from './bencode';
 import { run } from 'micro';
 import URL from 'node:url';
@@ -17,10 +17,7 @@ function handle(req: http.IncomingMessage) {
 	const url = URL.parse(req.url!, false, true);
 
 	const queryParams = parseQueryString(url.search?.slice(1) ?? '');
-	const result = extractArgs(queryParams);
-
-	const address = req.socket.address();
-	console.log(address)
+	const result = parseAnnounceRequestArgs(queryParams);
 
 	if (result.type === "FAILURE") {
 		return bencode({
