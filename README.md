@@ -10,10 +10,10 @@ $ wrangler deploy
 ```
 
 your tracker will be available at https://your-namespace.workers.dev/announce.
-For available configuration, see [env.ts](./src/workers/env.ts). Visit
+for available configuration, see [env.ts](./src/workers/env.ts). visit
 `https://your-namespace.workers.dev/<your_info_hash>` (for example
 https://your-namespace.workers.dev/7dc755c011ce937629d2227de6b6b1ee83222437) to
-see a JSON representation of the peer list.
+see a json representation of the peer list.
 
 ## logging
 
