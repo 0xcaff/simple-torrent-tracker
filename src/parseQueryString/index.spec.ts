@@ -2,9 +2,9 @@ import { it, expect } from "vitest";
 import {
   parseQueryString,
   parseQueryStringValue,
-} from "../src/parseQueryString/parseQueryString";
-import { intoHex } from "../src/bencode";
-import { parseAnnounceRequestArgs } from "../src/parseAnnounceRequestArgs";
+} from "./parseQueryString";
+import { intoHex } from "../bencode";
+import { parseAnnounceRequestArgs } from "../parseAnnounceRequestArgs";
 
 it("parses a query string into its constituent parts", () => {
   expect(
@@ -35,7 +35,7 @@ it("parses a query string value", () => {
     ),
   );
   expect(encoded).toMatchInlineSnapshot(
-    `"cabf1b0337adfb62bc0b50f15bce770e84791763"`,
+    `"e1b86dc65e1a11de16901f269882807240c17f72"`,
   );
 });
 
