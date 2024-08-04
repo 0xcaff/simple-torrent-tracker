@@ -15,6 +15,13 @@ For available configuration, see [env.ts](./src/workers/env.ts). Visit
 https://your-namespace.workers.dev/7dc755c011ce937629d2227de6b6b1ee83222437) to
 see a JSON representation of the peer list.
 
+## logging
+
+Add a `DD_API_KEY` secret with a value containing an
+[API Key from DataDog][keys] to enable logging announces to DataDog. This allows
+you to see all peers and info hashes the tracker is coordinating peer discovery
+for.
+
 ## why
 
 the bittorrent protocol is a tool for handling p2p transfers in a fault-tolerant
@@ -32,3 +39,5 @@ private p2p transfers (non-piracy use cases). i'm open to PRs, issues and other
 feedback. this is close to being useful for you but doesn't fit your use case?
 looking for a feature this doesn't have (per-user auth, per-user metering,
 something else)? open an issue, i'd like to hear from you.
+
+[keys]: https://docs.datadoghq.com/account_management/api-app-keys/
