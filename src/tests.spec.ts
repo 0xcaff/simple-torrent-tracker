@@ -2,9 +2,9 @@ import { it, expect } from "vitest";
 import {
   parseQueryString,
   parseQueryStringValue,
-} from "./parseQueryString";
-import { intoHex } from "../bencode";
-import { parseAnnounceRequestArgs } from "../parseAnnounceRequestArgs";
+} from "./parseQueryString/parseQueryString";
+import { intoHex } from "./bencode";
+import { parseAnnounceRequestArgs } from "./parseAnnounceRequestArgs";
 
 it("parses a query string into its constituent parts", () => {
   expect(
