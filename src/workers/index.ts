@@ -64,7 +64,10 @@ export default {
 					logger.log([
 						{
 							type: "announce",
-							values: result.values,
+							values: {
+								...values,
+								infoHash: result.values.infoHash,
+							},
 						},
 					]),
 				);
