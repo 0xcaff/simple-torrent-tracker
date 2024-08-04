@@ -17,8 +17,8 @@ see a JSON representation of the peer list.
 
 ## logging
 
-Add a `DD_API_KEY` secret with a value containing an
-[API Key from DataDog][keys] to enable logging announces to DataDog. This allows
+add a `DD_API_KEY` secret with a value containing an
+[api key from datadog][keys] to enable logging announces to datadog. this allows
 you to see all peers and info hashes the tracker is coordinating peer discovery
 for.
 
